@@ -51,3 +51,15 @@ Module.symvers
 Mkfile.old
 dkms.conf
 /ft_ls
+
+
+# test files
+/a
+/b
+/c
+/d
+/e
+/f
+/g
+/h
+/link

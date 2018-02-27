@@ -1,0 +1,113 @@
+setup () {
+	mkdir -p unit_test_sample
+}
+
+teardown () {
+	rm -rf unit_test_sample
+}
+
+@test "It should not fail wihout options" {
+	run ./ft_ls
+	[ "$status" -eq 0 ]
+}
+
+@test "It should fail with badly formatted options" {
+    run ./ft_ls ------Q
+	[ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- -" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+
+
+	run ./ft_ls ---R
+	[ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- -" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+
+	run ./ft_ls --R
+	[ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- -" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+}
+
+@test "It should fail with non-existing options" {
+    run ./ft_ls -Q
+    [ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- Q" ]
+	[ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+
+    run ./ft_ls -B
+    [ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- B" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+
+	run ./ft_ls -k
+    [ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- k" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+}
+
+@test "It should fail with weird combinaisions" {
+	run ./ft_ls -l--R
+    [ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- -" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+
+	run ./ft_ls -l-R
+    [ "$status" -ne 0 ]
+	[ "${lines[0]}" = "ft_ls: illegal option -- -" ]
+    [ "${lines[1]}" = "usage: ft_ls [-lRart] [file ...]" ]
+}
+
+@test "It should accept all forms of valid options" {
+	run ./ft_ls -l
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -r
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -a
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -R
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -t
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -lraRt
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -l -r -a -R -t
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -l -r -t
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -R -l -r -a -t
+    [ "$status" -eq 0 ]
+}
+
+@test "It should accept multiple valid options" {
+	run ./ft_ls -RRRRRRRllllllrrrrraaaaattttt
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -R -a -r -R -R -R -t -t -t -r
+    [ "$status" -eq 0 ]
+}
+
+
+@test "It should accept weird mixed valid options" {
+	run ./ft_ls -Rlart -R -lllllll -lrlrlrlr -ataratR -laRrr -r
+    [ "$status" -eq 0 ]
+
+	run ./ft_ls -R -l -r -a -t -R -l -r -a -tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -rrrrrrrrrrrrrrrr -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l   -tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt     -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a       -t -R -l -r -a -t
+    [ "$status" -eq 0 ]
+
+
+}
