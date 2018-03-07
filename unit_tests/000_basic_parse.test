@@ -1,9 +1,5 @@
 setup () {
-	mkdir -p unit_test_sample
-}
-
-teardown () {
-	rm -rf unit_test_sample
+	make
 }
 
 @test "It should not fail wihout options" {
@@ -108,6 +104,4 @@ teardown () {
 
 	run ./ft_ls -R -l -r -a -t -R -l -r -a -tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -rrrrrrrrrrrrrrrr -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l   -tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt     -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a -t -R -l -r -a       -t -R -l -r -a -t
     [ "$status" -eq 0 ]
-
-
 }

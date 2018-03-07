@@ -5,203 +5,276 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: msteffen <msteffen@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/02/14 14:36:40 by msteffen          #+#    #+#             */
-/*   Updated: 2018/02/27 21:46:07 by msteffen         ###   ########.fr       */
+/*   Created: 2018/03/05 13:05:53 by msteffen          #+#    #+#             */
+/*   Updated: 2018/03/07 15:06:03 by msteffen         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "ft_ls_params.h"
-#include <stdio.h>
+#include "ft_ls_params.h"
 #include "libft.h"
 #include "ft_entry.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "ft_list.h"
 #include <unistd.h>
+#include <errno.h>
 #include <dirent.h>
+#include "ft_sort.h"
+#include "ft_ls_print_l.h"
 
-int ft_ls_path(char *path, t_lsparams *params, t_lslist *lst);
 
-void ft_print_list_l_permissions(t_entry *entry) // @todo pas de l pour les symlinks
+
+void ft_del_entrylist(void *ptr, size_t len)
 {
-	printf("%c", entry->o_r ? 'r' : '-');
-	printf("%c", entry->o_w ? 'w' : '-');
-	printf("%c", entry->o_x ? 'x' : '-');
-	printf("%c", entry->g_r ? 'r' : '-');
-	printf("%c", entry->g_w ? 'w' : '-');
-	printf("%c", entry->g_x ? 'x' : '-');
-	printf("%c", entry->w_r ? 'r' : '-');
-	printf("%c", entry->w_w ? 'w' : '-');
-	printf("%c", entry->w_x ? 'x' : '-');
+	t_entry *entry;
+
+	entry = (t_entry*)ptr;
+	destroy_entry(&entry);
+	(void)len;
 }
 
-void ft_get_max_lens(t_lslist *lst, int *max_byte_len, int *max_link_len, int *total_blk_sz)
+void ft_list_push(t_list **lst, t_entry *entry)
 {
-	int i;
-
-	i = 1;
-	*max_byte_len = ft_intlen(lst->arr[i]->sz_bytes);
-	*max_link_len = ft_intlen(lst->arr[i]->nb_links);
-	*total_blk_sz = lst->arr[0]->sz_blocks;
-	while (i < lst->used_size)
-	{
-		if (ft_intlen(lst->arr[i]->nb_links) > *max_link_len)
-			*max_link_len = ft_intlen(lst->arr[i]->nb_links);
-		if (ft_intlen(lst->arr[i]->sz_bytes) > *max_byte_len)
-			*max_byte_len = ft_intlen(lst->arr[i]->sz_bytes);
-		*total_blk_sz += lst->arr[i]->sz_blocks;
-		i++;
-	}
+	if (*lst == NULL)
+		*lst = ft_lstnew(entry, sizeof(t_entry));
+	else
+		ft_lstadd(lst, ft_lstnew(entry, sizeof(t_entry)));
 }
 
-void ft_print_pad(int nb)
-{
-	int i;
 
-	i = -1;
-	while (++i <= nb)
-		printf(" ");
+char *ft_ls_pathcat(char *base_path, char *path)
+{
+	char	*res;
+
+	if ((res = ft_strnew(ft_strlen(base_path) + ft_strlen(path) + 2)) == NULL)
+		return (NULL);
+	ft_strcpy(res, base_path);
+	ft_strcat(res, "/");
+	ft_strcat(res, path);
+	return (res);
 }
 
-void ft_print_list_l(t_lslist *lst)
+
+int ft_ls_path_dir(char *directory_path, t_entry *entry, t_lsparams *params)
 {
-	int i;
-	int max_byte_len;
-	int max_link_len;
-	int total;
-	t_entry *current;
+	(void)params;
 
-	i = 0;
-	ft_get_max_lens(lst, &max_byte_len, &max_link_len, &total);
-	printf("total %d\n", total);
-	while (i < lst->used_size)
-	{
-		current = lst->arr[i];
-		printf("%c", current->type);
-		ft_print_list_l_permissions(current);
-		ft_print_pad(max_link_len - ft_intlen(current->nb_links));
-		printf(" %d ", current->nb_links);
-		printf("%s", current->user);
-		printf("  %s", current->group);
-		ft_print_pad(max_byte_len - ft_intlen(current->sz_bytes));
-		printf(" %d ", current->sz_bytes);
-		printf("%.12s", current->last_edit_date);
-		printf(" %s", current->name);
-		printf("\n");
-		i++;
-	}
-}
-
-void ft_print_list(t_lslist *lst)
-{
-	int i;
-
-	i = 0;
-	if (lst->used_size == 1)
-	{
-		printf("%s\n", lst->arr[0]->name);
-		return ;
-	}
-	while (i < lst->used_size)
-	{
-		if (i == 0)
-			printf("%s", lst->arr[i]->name);
-		else if (i == lst->used_size - 1)
-			printf("\t%s\n", lst->arr[i]->name);
-		else
-			printf("\t%s", lst->arr[i]->name);
-		i++;
-	}
-}
-
-int ft_ls_read_dir(char *path, t_lsparams *params, t_lslist *lst)
-{
+	t_entry			*current_file_entry;
 	DIR				*dir_fd;
+	char			*fullpath;
 	struct dirent	*dir_data;
-	t_entry			*entry;
 
-	dir_fd = opendir(path);
+	dir_fd = opendir(directory_path);
 	if (dir_fd)
 	{
 		while ((dir_data = readdir(dir_fd)) != NULL)
 		{
 			if (!ft_strequ(dir_data->d_name, ".") && !ft_strequ(dir_data->d_name, "..") && dir_data->d_name[0] != '.')
 			{
-				entry = create_entry_file(dir_data->d_name);
-				ft_list_push(lst, entry);
+				// dir_data->d_name[0] != '.' = > option -a
+				fullpath = ft_ls_pathcat(directory_path, dir_data->d_name);
+				current_file_entry = ft_parse_file_entry(fullpath, fullpath + ft_strlen(directory_path) + 1);
+				if (params->cr)
+					ft_ls_path_dir(fullpath, current_file_entry,  params);
+				free(fullpath);
+				ft_list_push(&(entry->subentries), current_file_entry);
 			}
-			(void)params;
 		}
 		closedir(dir_fd);
 	}
-	else
+	return (0);
+
+}
+
+int ft_ls_path(char *path, t_list **lst, t_lsparams *params)
+{
+	t_entry *entry;
+
+	entry = ft_parse_file_entry(path, NULL);
+	if (entry == NULL)
 	{
-		printf("\n\n\n\n\n ERROR NON GERER; OPENDIR A RETOURNE 0 \n\n\n\n\n\n"); //@todo
-		return (4);
+		ft_printf_fd(2, "ft_ls: %s: %s\n", path, strerror(errno));
+		return (1);
 	}
+	if (entry->s_isdir)
+	{
+		ft_ls_path_dir(path, entry, params);
+	}
+	ft_list_push(lst, entry);
 	return (0);
 }
 
-int ft_ls_path(char *path, t_lsparams *params, t_lslist *lst)
-{
-	struct stat stated;
-	t_entry *entry;
 
-	if (stat(path, &stated) != 0) // path does not exists
+/*
+**	Prints all entries from a list, without distinction.
+*/
+void ft_print_entries(t_list *lst, t_lsparams *params)
+{
+	t_entry *e;
+
+	if (params->l)
 	{
-		printf("ft_ls: %s: No such file or directory\n", path);
-		return (1);
+		ft_print_l_all(lst);
+		return ;
 	}
-	if (S_ISREG(stated.st_mode) || S_ISLNK(stated.st_mode)) // path point to a single regular file
+	while (lst)
 	{
-		entry = create_entry_file(path);
-		ft_list_push(lst, entry);
-		return (0);
+		e = (t_entry *)lst->content;
+		if (lst->next)
+			ft_printf("%s\t", e->name);
+		else
+			ft_printf("%s", e->name);
+		lst = lst->next;
 	}
-	else // path points to a directory
-		return (ft_ls_read_dir(path, params, lst));
 }
 
-int ft_ls(int ac, char **av, t_lsparams *params, int path_start)
+/*
+**	Prints simple entries (ie entries without subentries), ignores the others.
+*/
+int ft_print_simple_entries(t_list *lst, t_lsparams *params)
 {
-	int i;
-	int err;
-	t_lslist *lst;
+	t_entry *e;
+	int has_prefix;
+
+	has_prefix = 0;
+	while (lst) {
+		e = (t_entry *)lst->content;
+		if (e->subentries == NULL)
+		{
+			has_prefix = 1;
+			if (lst->next)
+				ft_printf("TEK%s\t", e->name);
+			else
+				ft_printf("TEK%s", e->name);
+		}
+		lst = lst->next;
+	}
+	(void)params;
+	return (has_prefix);
+}
+
+/**
+**	Prints complex entry (ie entries with subentries), ignores the others.
+*/
+void ft_print_complex_entries(t_list *lst, t_lsparams *params)
+{
+	t_entry *e;
+
+	while (lst)
+	{
+		e = (t_entry *)lst->content;
+		if (e->subentries != NULL)
+		{
+			printf("%s: \n", e->name);
+			ft_print_entries(e->subentries, params);
+			if (lst->next)
+				printf("\n");
+		}
+		lst = lst->next;
+	}
+}
+
+/*
+**	Prints all entries stored in lst_entries.
+**	Used when sevral folders are passed and they need to have their content
+**	grouped by folder.
+*/
+void ft_print_result_multipledirs(t_list *lst_entries, t_lsparams *params)
+{
+	t_list *lst;
+	int has_prefix;
+
+	lst = lst_entries;
+	has_prefix = ft_print_simple_entries(lst, params);
+	if (has_prefix)
+		printf("\n\n");
+	ft_print_complex_entries(lst, params);
+}
+
+/*
+**	Prints all entries stored in lst.
+*/
+void ft_print_result_singledir(t_list *lst, t_lsparams *params)
+{
+	t_entry *e;
+
+	e = (t_entry *)lst->content;
+	if (e->subentries != NULL)
+		ft_print_entries(e->subentries, params);
+	else
+		ft_print_entries(lst, params);
+}
+
+void ft_print_result(t_list *lst_entries, t_lsparams *params)
+{
+	t_list	*keep;
+	t_list	*lst;
+	t_entry	*e;
+
+	keep = lst_entries;
+	lst = keep;
+	int nb_entries_withsub = 0;
+	int nb_entries_withoutsub = 0;
+	while (lst)
+	{
+		e = (t_entry *)lst->content;
+		if (e->subentries != NULL)
+			nb_entries_withsub++;
+		else
+			nb_entries_withoutsub++;
+		lst = lst->next;
+	}
+	if (nb_entries_withsub > 1
+	|| (nb_entries_withsub == 1 && nb_entries_withoutsub != 0))
+		ft_print_result_multipledirs(lst_entries, params);
+	else
+		ft_print_result_singledir(lst_entries, params);
+}
+
+int ft_ls(t_lsparams *params, int ac, char **av, int path_start)
+{
+	int			i;
+	int			err;
+	t_list		*lst;
 
 	err = 0;
-	lst = ft_list_init();
+	lst = NULL;
 	i = path_start;
 	if (path_start == ac)
-		ft_ls_path(".", params, lst);
+	{
+		ft_ls_path(".", &lst, params);
+	}
 	while (i < ac)
 	{
-		if (ft_ls_path(av[i], params, lst) == 1)
+		if (ft_ls_path(av[i], &lst, params) == 1)
 			err = 1;
 		i++;
 	}
-	ft_list_sort_name(lst);
-	if (params->l)
-		ft_print_list_l(lst);
+
+	if (params->r)
+		ft_sort_result(&lst, &ft_sort_name, 0);
 	else
-		ft_print_list(lst);
-	ft_list_destroy(&lst);
+		ft_sort_result(&lst, &ft_sort_name, 1);
+
+
+
+	ft_print_result(lst, params);
+
+	//ft_lstdel(&lst, &ft_del_entrylist); @todo free
 	return (err);
 }
 
-int main(int ac, char **av)
+int	main(int ac, char **av)
 {
-	t_lsparams *params;
-	int path_start;
-	int err;
+	t_lsparams	*params;
+	int			start;
 
 	params = ft_ls_create_params();
-	path_start = ft_ls_parse_params(params, ac, av);
-	if (path_start < 0)
+	start = ft_ls_parse_params(params, ac, av);
+
+	if (start < 0)
 		return (1);
 
+	int ret = ft_ls(params, ac, av, start);
 
-	err = ft_ls(ac, av, params, path_start);
-	ft_ls_destroy_params(&params);
-
-	return (err); // @todo remplacer printf => ft_printf
+	return (ret);
 }

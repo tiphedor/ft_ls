@@ -1,0 +1,8 @@
+total 120
+-rw-r--r--   1 msteffen  2017_paris   2963 Mar  2 12:14 000_basic_parse.test
+-rw-r--r--   1 msteffen  2017_paris   4248 Mar  5 11:45 999_runtest.sh
+-rwxr-xr-x   1 msteffen  2017_paris  46304 Mar  5 11:45 ft_ls
+drwxr-xr-x  28 msteffen  2017_paris    952 Mar  2 12:09 tests_0
+drwxr-xr-x   2 msteffen  2017_paris     68 Mar  2 12:19 tests_1
+drwxr-xr-x   4 msteffen  2017_paris    136 Mar  2 12:22 tests_2
+drwxr-xr-x   4 msteffen  2017_paris    136 Mar  5 11:45 tmp

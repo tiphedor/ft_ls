@@ -1,31 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_list.h                                          :+:      :+:    :+:   */
+/*   ft_sort.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: msteffen <msteffen@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/02/27 18:35:49 by msteffen          #+#    #+#             */
-/*   Updated: 2018/02/27 20:07:03 by msteffen         ###   ########.fr       */
+/*   Created: 2018/03/07 13:56:38 by msteffen          #+#    #+#             */
+/*   Updated: 2018/03/07 13:58:02 by msteffen         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_LIST_H
-# define FT_LIST_H
+#ifndef FT_SORT_H
+# define FT_SORT_H
 
+# include "libft.h"
 # include "ft_entry.h"
 
-typedef struct	s_lslist
-{
-	t_entry **arr;
-	int used_size;
-	int allocated;
-}				t_lslist;
-
-t_lslist	*ft_list_init();
-void		ft_list_destroy(t_lslist **lst);
-void		ft_list_push(t_lslist *lst, t_entry *entry);
-void		ft_list_sort_name(t_lslist *lst);
-
+int		ft_sort_name(void *ev1, void *ev2);
+void	ft_sort_result(t_list **lst_in, int (*cmp)(void*, void*), int reverse);
 
 #endif

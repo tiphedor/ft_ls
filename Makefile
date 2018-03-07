@@ -6,21 +6,20 @@
 #    By: msteffen <msteffen@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/01/11 17:52:34 by msteffen          #+#    #+#              #
-#    Updated: 2018/02/27 18:41:18 by msteffen         ###   ########.fr        #
+#    Updated: 2018/03/07 13:57:45 by msteffen         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-
-CC 					=	gcc
-LD 					=	gcc
+CC 					=	clang
+LD 					=	clang
 
 SRC_DIR				=	srcs
 INCLUDE_DIR			=	includes
 
-LDFLAGS				=	-g -Wall -Wextra -Werror -L libft -lft
-CFLAGS				=	-g -c -Wall -Wextra -Werror -I libft/includes -I $(INCLUDE_DIR)
+LDFLAGS				=	-fsanitize=address -g -Wall -Wextra -Werror -Lft_printf -lftprintf
+CFLAGS				=	-fsanitize=address -g -c -Wall -Wextra -Werror -I ft_printf/libft/includes -I ft_printf/includes -I $(INCLUDE_DIR)
 
-SRC 				=	ft_list.c ft_entry.c ft_ls_params.c main.c
+SRC 				=	ft_sort.c ft_ls_print_l.c ft_entry.c ft_ls_params.c main.c
 
 SRCS				=	$(addprefix $(SRC_DIR)/,$(SRC))
 OBJS				=	$(patsubst %.c,%.o,$(SRCS))
@@ -39,7 +38,7 @@ clean:
 fclean: clean
 	rm -rf $(NAME)
 re: fclean all
-libft: libft/libft.a
-libft/libft.a:
-	make -C libft
+libft: ft_printf/libftprintf.a
+ft_printf/libftprintf.a:
+	make -C ft_printf
 .PHONY: all clean fclean re libft

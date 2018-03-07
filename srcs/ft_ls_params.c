@@ -6,7 +6,7 @@
 /*   By: msteffen <msteffen@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/27 12:32:00 by msteffen          #+#    #+#             */
-/*   Updated: 2018/02/27 20:14:19 by msteffen         ###   ########.fr       */
+/*   Updated: 2018/03/05 11:10:11 by msteffen         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,7 @@ void		ft_ls_destroy_params(t_lsparams **params)
 
 int ft_parse_error(int c)
 {
-	write(2, "ft_ls: illegal option -- ", ft_strlen("ft_ls: illegal option -- "));
-	write(2, &c, 1);
-	write(2, "\nusage: ft_ls [-lRart] [file ...]\n", ft_strlen("\nusage: ft_ls [-lRart] [file ...]\n"));
+	ft_printf_fd(STDERR_FILENO, "ft_ls: illegal option -- %c\nusage: ft_ls [-lRart] [file ...]\n", c);
 	return (-1);
 }
 
